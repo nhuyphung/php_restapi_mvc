@@ -1,20 +1,17 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed.');
 
-class Student_api extends CI_Controller{
+require './application/core/MyController.php';
+class Student_controller extends MyController{
     public function __construct()
     {
         parent::__construct();
-        
         $this->load->model('Student_model');
-        $this->load->library('form_validation');
-
-        header('Content-Type: application/json');
     }
 
     function index(){
-        $data = $this->Student_model->fetch_all(); 
-        echo json_encode($data->result_array()); 
+        $data = $this->Student_model->fetch_all();
+        echo json_encode($data->result_array());
     }
 
     function insert(){

@@ -1,10 +1,10 @@
 <?php
-class Student_model extends CI_Model{
+require './application/core/MyModel.php';
+class Student_model extends MyModel{
     
     public function __construct()
     {
         parent::__construct();
-        $this->load->database();
     }
 
     function fetch_all(){
