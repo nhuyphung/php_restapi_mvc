@@ -7,9 +7,20 @@ class Student_model extends MyModel{
         parent::__construct();
     }
 
-    function fetch_all(){
-        $this->db->order_by('id', 'DESC');
-        return $this->db->get('student');
+    function list(
+        $input_page = 1, 
+        $input_row_per_page = null
+    ){
+
+        $this->init_m_sql();
+        $sql = "CALL student_list_2(".
+            ($input_page === null ? "null" : $input_page) . ", " .
+            ($input_row_per_page === null ? "null" : $input_row_per_page)
+        .")";
+
+        $res = $this->m_query($sql);
+        // var_dump($res);
+        return $this->process_m_results($res)->get_results();
     }
 
     function insert_student($data){

@@ -6,12 +6,41 @@ class Student_controller extends MyController{
     public function __construct()
     {
         parent::__construct();
-        $this->load->model('Student_model');
     }
 
-    function index(){
-        $data = $this->Student_model->fetch_all();
-        echo json_encode($data->result_array());
+    function list(
+        $input_page = 1, 
+        $input_row_per_page = null
+    ){
+
+        $this->load->model("Student_model");
+        $posting_data = $this->posting_data;
+
+        //if isset() -> $something have data <=> if(){  }
+        isset($posting_data['input_page']) && $input_page = $posting_data['input_page'];
+        isset($posting_data['input_row_per_page']) && $input_row_per_page = $posting_data['input_row_per_page'];
+
+        $input_page === "" ? $input_page = null : $input_page;
+        $input_row_per_page === "" ? $input_row_per_page = null : $input_row_per_page;
+
+        $result = $this->Student_model->list(
+            $input_page,
+            $input_row_per_page
+        );
+
+        if(isset($result->status) && $result->status){
+            if(isset($result->total)&& (int)$result->total > 0){
+                $this-> success()
+                    ->set("data", isset($result->data) ? $result->data : [])
+                    ->set("page", $input_page)
+                    ->set("limit", $input_row_per_page)
+                    ->set("total", (int)$result->total);
+            }
+        }else{
+            $this->failed("no_records_found");
+        }
+        
+        return $this->render_json();
     }
 
     function insert(){
