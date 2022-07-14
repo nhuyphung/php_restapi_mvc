@@ -9,8 +9,8 @@ class Student_controller extends MyController{
     }
 
     function list(
-        $input_page = 1, 
-        $input_row_per_page = null
+        int $input_page = 1, 
+        int $input_row_per_page = null
     ){
 
         $this->load->model("Student_model");
@@ -27,7 +27,7 @@ class Student_controller extends MyController{
             $input_page,
             $input_row_per_page
         );
-
+        
         if(isset($result->status) && $result->status){
             if(isset($result->total)&& (int)$result->total > 0){
                 $this-> success()
@@ -43,85 +43,97 @@ class Student_controller extends MyController{
         return $this->render_json();
     }
 
-    function insert(){
-        $this->form_validation->set_rules('name', 'Name', 'required');
-        $this->form_validation->set_rules('age', 'Age', 'required');
-        $this->form_validation->set_rules('address', 'Address', 'required');
+    function create(
+        string $input_name = null,
+        int $input_age = null,
+        string $input_address = null
+    ){
+        $this->load->model("Student_model");
+        $posting_data = $this->posting_data;
+
+        isset($posting_data['input_name']) && $input_name = $posting_data['input_name'];
+        isset($posting_data['input_age']) && $input_age = $posting_data['input_age'];
+        isset($posting_data['input_address']) && $input_address = $posting_data['input_address'];
+
+        $input_name === "" ? $input_name = null : $input_name;
+        $input_age === "" ? $input_age = null : $input_age;
+        $input_address === "" ? $input_address = null : $input_address;
+
+        $res = $this->Student_model->create($input_name, $input_age, $input_address);
         
-        if($this->form_validation->run()){
-            $data = array(
-                'name'              => $this->input->post('name'),
-                'age'               => $this->input->post('age'),
-                'address'           => $this->input->post('address'),
-            );
-
-            $this->Student_model->insert_student($data);
-            $array = array(
-                'success'           => true,
-            );
+        if(isset($res->status) && $res->status){
+            $this->success()
+                ->set("data", isset($res->data) ? $res->data : []);
         }else{
-            $array = array(
-                'error'             => true,
-                'name'              => form_error('name'),
-                'age'               => form_error('age'),
-                'address'           => form_error('address'),
-            );
+            $this->failed($res->error ?? []);
         }
-        echo json_encode($array);
+
+        return $this->render_json();
     }
 
-    function fetch_single(){
-        if($this->input->post('id')){
-            $data = $this->Student_model->fetch_single_student($this->input->post('id'));
-            foreach($data as $row){
-                $output['id'] = $row['id'];
-                $output['name'] = $row['name'];
-                $output['age'] = $row['age'];
-                $output['address'] = $row['address'];
-            }
-            echo json_encode($output);
+    function get_details(int $input_id_student = null){
+        $this->load->model("Student_model");
+        if($input_id_student === null)
+            return $this->failed("Missing student id")->render_json();
+
+        $res = $this->Student_model->get_details($input_id_student);
+        if(isset($res->status) && $res->status){
+            $this->success()
+                ->set("data", isset($res->data) ? $res->data : []);
+        }else{
+            $this->failed($res->error ?? []);
         }
+
+        return $this->render_json();
     }
 
-    function update(){
-        $this->form_validation->set_rules('name', 'Name', 'required');
-        $this->form_validation->set_rules('age', 'Age', 'required');
-        $this->form_validation->set_rules('address', 'Address', 'required');
+    function update(
+        int $input_id_student
+    ){
+        $posting_data = $this->posting_data;
+        $this->load->model("Student_model");
+        if($input_id_student === null)
+            return $this->failed("Missing student id")->render_json();
+        if(!isset($posting_data['input_name']) || $posting_data['input_name']===null){
+            return $this->failed("Missing student name")->render_json();
+        }
+        if(!isset($posting_data['input_age']) || $posting_data['input_age']===null){
+            return $this->failed("Missing student age")->render_json();
+        }
+        if(!isset($posting_data['input_address']) || $posting_data['input_address']===null){
+            return $this->failed("Missing student address")->render_json();
+        }
+
+        $input_name = $posting_data['input_name'];
+        $input_age = $posting_data['input_age'];
+        $input_address = $posting_data['input_address'];
+
+        $res = $this->Student_model->update($input_id_student, $input_name, $input_age, $input_address);
+        if(isset($res->status) && $res->status){
+            $this->success()
+                ->set("data", isset($res->data) ? $res->data : []);
+        }else{
+            $this->failed($res->error ?? []);
+        }
+
+        return $this->render_json();
+    }
+
+    function delete(int $input_id_student = null){
+        $this->load->model("Student_model");
+        if($input_id_student === null)
+            return $this->failed("Missing student id")->render_json();
         
-        if($this->form_validation->run()){
-            $data = array(
-                'name'              => $this->input->post('name'),
-                'age'               => $this->input->post('age'),
-                'address'           => $this->input->post('address'),
-            );
-            $this->Student_model->update_student($this->input->post('id'), $data);
-            $array = array(
-                'success'           => true,
-            );
-        }else{
-            $array = array(
-                'error'             => true,
-                'name'              => form_error('name'),
-                'age'               => form_error('age'),
-                'address'           => form_error('address'),
-            );
-        }
-        echo json_encode(($array));
-    }
+        $res = $this->Student_model->delete($input_id_student);
 
-    function delete(){
-        if($this->input->post('id')){
-            if($this->Student_model->delete_single_student($this->input->post('id'))){
-                $array = array(
-                    'success'           => true,
-                );
-            }else{
-                $array = array(
-                    'error'             => true,
-                );
-            }
+        if(isset($res->status) && $res->status){
+            $this->success()
+                ->set("data", isset($res->data) ? $res->data : []);
+        }else{
+            $this->failed($res->error ?? []);
         }
-        echo json_encode($array);
+
+        return $this->render_json();
     }
 }
 ?>

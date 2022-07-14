@@ -54,6 +54,7 @@ $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
 
 $route['student'] = 'Student_controller/list';
-$route['student/insert'] = 'Student_controller/insert';
-$route['student/fetch_single'] = 'Student_controller/fetch_single';
-$route['student/delete'] = 'Student_controller/delete';
+$route['student/create'] = 'Student_controller/create';
+$route['student/(:num)'] = 'Student_controller/get_details/$1';
+$route['student/delete/(:num)'] = 'Student_controller/delete/$1';
+$route['student/update/(:num)'] = 'Student_controller/update/$1';
